@@ -1,0 +1,13 @@
+{
+  "repo": "https://github.com/HimanshuBijja/moodle-plugins",
+  "plugins": [
+    {
+      "name": "boost_union",
+      "branch": "boost_union",
+      "tag": "v5.1",
+      "zip_file": "theme_boost_union_moodle51_2025100607.zip",
+      "type": "theme",
+      "install_dir": "boost_union"
+    }
+  ]
+}
