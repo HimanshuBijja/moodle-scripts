@@ -162,6 +162,7 @@ function populate_add_cm($courseid, $modulename, $instanceid, $sectionnum) {
     $cm->instance         = $instanceid;
     $cm->visible          = 1;
     $cm->visibleoncoursepage = 1;
+    $cm->completion       = 1;
     $cm->added            = time();
     $cmid = $DB->insert_record('course_modules', $cm);
 
@@ -441,6 +442,7 @@ foreach ($COURSE_DEFS as $idx => $def) {
     $coursedata->startdate   = $startdate;
     $coursedata->enddate     = $enddate;
     $coursedata->category    = 1;
+    $coursedata->enablecompletion = 1;
     $course = create_course($coursedata);
     echo "  ✓ Course created (id={$course->id})\n";
 
@@ -552,6 +554,37 @@ foreach ($COURSE_DEFS as $idx => $def) {
         }
     }
     echo "  ✓ $submissionCount assignment submissions ($gradedCount graded)\n";
+
+    // ── Simulate course completion ──
+    $completionPercent = rand(10, 60);
+    $completionCount = max(1, (int)(count($enrolledUsers) * $completionPercent / 100));
+    $completedUsers = array_slice($enrolledUsers, 0, $completionCount);
+    $allCmIds = $DB->get_records('course_modules', ['course' => $course->id], '', 'id');
+
+    foreach ($completedUsers as $cu) {
+        foreach ($allCmIds as $cmrec) {
+            $exists = $DB->record_exists('course_modules_completion', [
+                'coursemoduleid' => $cmrec->id,
+                'userid' => $cu->id,
+            ]);
+            if (!$exists) {
+                $cmc = new stdClass();
+                $cmc->coursemoduleid = $cmrec->id;
+                $cmc->userid        = $cu->id;
+                $cmc->completionstate = 1;
+                $cmc->timemodified   = random_timestamp($startdate, $enddate);
+                $DB->insert_record('course_modules_completion', $cmc);
+            }
+        }
+        $cc = new stdClass();
+        $cc->userid        = $cu->id;
+        $cc->course        = $course->id;
+        $cc->timeenrolled  = $startdate;
+        $cc->timestarted   = $startdate;
+        $cc->timecompleted = random_timestamp($startdate, $enddate);
+        $DB->insert_record('course_completions', $cc);
+    }
+    echo "  ✓ $completionCount/$numUsers students completed the course ($completionPercent%)\n";
 
     $summaryLines[] = sprintf(
         "  %d. %-40s | %2d days | %3d users | %d forums | %d assigns | %d pages",
