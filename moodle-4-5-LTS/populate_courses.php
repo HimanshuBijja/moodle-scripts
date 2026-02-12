@@ -374,10 +374,48 @@ for ($i = 1; $i <= $USER_POOL_SIZE; $i++) {
 }
 echo "\n✓ $USER_POOL_SIZE users ready.\n\n";
 
-// Get student role and manual enrol plugin.
+// Get roles and manual enrol plugin.
 $studentrole = $DB->get_record('role', ['shortname' => 'student'], '*', MUST_EXIST);
 $enrolplugin = enrol_get_plugin('manual');
 $adminid     = get_admin()->id;
+
+// ── Create role accounts ──
+echo "Creating role accounts...\n";
+$systemctx = context_system::instance();
+$ROLE_ACCOUNTS = [
+    ['username' => 'manager',           'firstname' => 'Manager',      'lastname' => 'User',    'role' => 'manager',          'password' => 'Manager@123456'],
+    ['username' => 'coursecreator',     'firstname' => 'Course',       'lastname' => 'Creator', 'role' => 'coursecreator',    'password' => 'Coursecreator@123456'],
+    ['username' => 'teacher',           'firstname' => 'Teacher',      'lastname' => 'User',    'role' => 'editingteacher',   'password' => 'Teacher@123456'],
+    ['username' => 'noneditingteacher', 'firstname' => 'Non-editing',  'lastname' => 'Teacher', 'role' => 'teacher',          'password' => 'Noneditingteacher@123456'],
+    ['username' => 'student',           'firstname' => 'Student',      'lastname' => 'User',    'role' => 'student',          'password' => 'Student@123456'],
+];
+$roleUserIds = [];
+foreach ($ROLE_ACCOUNTS as $acct) {
+    $existing = $DB->get_record('user', ['username' => $acct['username']]);
+    if ($existing) {
+        $roleUserIds[] = ['id' => $existing->id, 'role' => $acct['role']];
+        echo "  ✓ '{$acct['username']}' already exists\n";
+        continue;
+    }
+    $ru = new stdClass();
+    $ru->username   = $acct['username'];
+    $ru->password   = $acct['password'];
+    $ru->firstname  = $acct['firstname'];
+    $ru->lastname   = $acct['lastname'];
+    $ru->email      = $acct['username'] . '@moodle.local';
+    $ru->auth       = 'manual';
+    $ru->confirmed  = 1;
+    $ru->mnethostid = $CFG->mnet_localhost_id;
+    $ru->id = user_create_user($ru, true, false);
+    echo "  ✓ Created '{$acct['username']}' (id={$ru->id})\n";
+    // Assign system-level roles.
+    if (in_array($acct['role'], ['manager', 'coursecreator'])) {
+        $sysrole = $DB->get_record('role', ['shortname' => $acct['role']], '*', MUST_EXIST);
+        role_assign($sysrole->id, $ru->id, $systemctx->id);
+    }
+    $roleUserIds[] = ['id' => $ru->id, 'role' => $acct['role']];
+}
+echo "\n";
 
 $summaryLines = [];
 
@@ -385,7 +423,7 @@ foreach ($COURSE_DEFS as $idx => $def) {
     $duration    = $DURATIONS[array_rand($DURATIONS)];
     $numUsers    = rand($MIN_USERS, $MAX_USERS);
     $startdate   = time() - ($duration * 86400);
-    $enddate     = time();
+    $enddate     = time() + (30 * 86400);
     $shortname   = $def['shortname'] . '_' . time() . '_' . $idx;
 
     echo str_repeat('─', 50) . "\n";
@@ -422,7 +460,15 @@ foreach ($COURSE_DEFS as $idx => $def) {
     foreach ($enrolledUsers as $eu) {
         $enrolplugin->enrol_user($manualinstance, $eu->id, $studentrole->id, $startdate, $enddate);
     }
-    echo "  ✓ $numUsers users enrolled\n";
+    // Enrol admin as editing teacher.
+    $editteacherrole = $DB->get_record('role', ['shortname' => 'editingteacher'], '*', MUST_EXIST);
+    $enrolplugin->enrol_user($manualinstance, $adminid, $editteacherrole->id);
+    // Enrol all role accounts with their respective roles.
+    foreach ($roleUserIds as $ra) {
+        $rarole = $DB->get_record('role', ['shortname' => $ra['role']], '*', MUST_EXIST);
+        $enrolplugin->enrol_user($manualinstance, $ra['id'], $rarole->id);
+    }
+    echo "  ✓ $numUsers students + admin + role accounts enrolled\n";
 
     // ── Create activities ──
     $forums = [];
@@ -522,5 +568,11 @@ echo "Courses created:\n";
 foreach ($summaryLines as $line) {
     echo $line . "\n";
 }
-echo "\nUser credentials:  testuser_1 … testuser_$USER_POOL_SIZE  /  Student@123\n";
+echo "\nStudent pool:  testuser_1 … testuser_$USER_POOL_SIZE  /  Student@123\n";
 echo "Total users in pool: $USER_POOL_SIZE\n\n";
+echo "Role accounts:\n";
+echo "  manager            / Manager@123456\n";
+echo "  coursecreator      / Coursecreator@123456\n";
+echo "  teacher            / Teacher@123456\n";
+echo "  noneditingteacher  / Noneditingteacher@123456\n";
+echo "  student            / Student@123456\n\n";
