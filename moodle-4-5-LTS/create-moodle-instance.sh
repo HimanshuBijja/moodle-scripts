@@ -40,9 +40,19 @@ if ! [[ "$PORT" =~ ^[0-9]+$ ]] || [ "$PORT" -lt 1024 ] || [ "$PORT" -gt 65535 ];
     exit 1
 fi
 
-# Check if port is already in use
+# Derive DB port from the web port (last 2 digits prefixed with 33)
+# e.g., 8088 -> 3388, 8082 -> 3382
+DB_PORT="33${PORT: -2}"
+
+# Check if web port is already in use
 if lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
     print_error "Port $PORT is already in use. Please choose a different port."
+    exit 1
+fi
+
+# Check if DB port is already in use
+if lsof -Pi :$DB_PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
+    print_error "DB Port $DB_PORT is already in use. Please choose a different port."
     exit 1
 fi
 
@@ -62,6 +72,7 @@ fi
 print_info "Creating Moodle $MOODLE_VERSION instance: $INSTANCE_NAME"
 print_info "Location: $INSTANCE_PATH"
 print_info "URL will be: http://$IP_ADDRESS:$PORT"
+print_info "DB port will be: $DB_PORT"
 
 # Create instance folder
 mkdir -p "$INSTANCE_PATH"
@@ -80,6 +91,8 @@ services:
       MYSQL_DATABASE: moodle
       MYSQL_USER: moodleuser
       MYSQL_PASSWORD: moodlepass
+    ports:
+      - "$DB_PORT:3306"
     volumes:
       - db_data:/var/lib/mysql
 
@@ -266,6 +279,7 @@ echo "  - Name: $INSTANCE_NAME"
 echo "  - Path: $INSTANCE_PATH"
 echo "  - Moodle Version: $MOODLE_VERSION (branch: $MOODLE_BRANCH)"
 echo "  - URL: http://$IP_ADDRESS:$PORT"
+echo "  - DB Port: $DB_PORT"
 echo ""
 echo "Admin Login Credentials:"
 echo "  - Username: $ADMIN_USER"
@@ -282,7 +296,7 @@ echo "Database Credentials:"
 echo "  - Database: moodle"
 echo "  - Username: moodleuser"
 echo "  - Password: moodlepass"
-echo "  - Host: db"
+echo "  - Host: db (or $IP_ADDRESS:$DB_PORT from outside Docker)"
 echo ""
 print_success "You can now login at http://$IP_ADDRESS:$PORT"
 echo ""
