@@ -25,6 +25,18 @@ require_once($CFG->libdir  . '/filelib.php');
 // Run as admin.
 $USER = get_admin();
 
+// Parse CLI options.
+[$options, $unrecognised] = cli_get_params(
+    ['password-suffix' => '123456', 'help' => false],
+    ['p' => 'password-suffix', 'h' => 'help']
+);
+if ($options['help']) {
+    echo "Usage: php populate_courses.php [--password-suffix=SUFFIX]\n";
+    echo "  --password-suffix, -p   Password suffix for all accounts (default: 123456)\n";
+    exit(0);
+}
+$passwordSuffix = $options['password-suffix'];
+
 // ──────────────────────────────────────────────
 // CONFIGURATION
 // ──────────────────────────────────────────────
@@ -362,7 +374,7 @@ for ($i = 1; $i <= $USER_POOL_SIZE; $i++) {
     }
     $u = new stdClass();
     $u->username    = $uname;
-    $u->password    = 'Student@123';
+    $u->password    = 'Student@' . $passwordSuffix;
     $u->firstname   = $FIRST_NAMES[array_rand($FIRST_NAMES)];
     $u->lastname    = $LAST_NAMES[array_rand($LAST_NAMES)];
     $u->email       = $uname . '@test.moodle.local';
@@ -384,11 +396,11 @@ $adminid     = get_admin()->id;
 echo "Creating role accounts...\n";
 $systemctx = context_system::instance();
 $ROLE_ACCOUNTS = [
-    ['username' => 'manager',           'firstname' => 'Manager',      'lastname' => 'User',    'role' => 'manager',          'password' => 'Manager@123456'],
-    ['username' => 'coursecreator',     'firstname' => 'Course',       'lastname' => 'Creator', 'role' => 'coursecreator',    'password' => 'Coursecreator@123456'],
-    ['username' => 'teacher',           'firstname' => 'Teacher',      'lastname' => 'User',    'role' => 'editingteacher',   'password' => 'Teacher@123456'],
-    ['username' => 'noneditingteacher', 'firstname' => 'Non-editing',  'lastname' => 'Teacher', 'role' => 'teacher',          'password' => 'Noneditingteacher@123456'],
-    ['username' => 'student',           'firstname' => 'Student',      'lastname' => 'User',    'role' => 'student',          'password' => 'Student@123456'],
+    ['username' => 'manager',           'firstname' => 'Manager',      'lastname' => 'User',    'role' => 'manager',          'password' => 'Manager@' . $passwordSuffix],
+    ['username' => 'coursecreator',     'firstname' => 'Course',       'lastname' => 'Creator', 'role' => 'coursecreator',    'password' => 'Coursecreator@' . $passwordSuffix],
+    ['username' => 'teacher',           'firstname' => 'Teacher',      'lastname' => 'User',    'role' => 'editingteacher',   'password' => 'Teacher@' . $passwordSuffix],
+    ['username' => 'noneditingteacher', 'firstname' => 'Non-editing',  'lastname' => 'Teacher', 'role' => 'teacher',          'password' => 'Noneditingteacher@' . $passwordSuffix],
+    ['username' => 'student',           'firstname' => 'Student',      'lastname' => 'User',    'role' => 'student',          'password' => 'Student@' . $passwordSuffix],
 ];
 $roleUserIds = [];
 foreach ($ROLE_ACCOUNTS as $acct) {
@@ -601,11 +613,11 @@ echo "Courses created:\n";
 foreach ($summaryLines as $line) {
     echo $line . "\n";
 }
-echo "\nStudent pool:  testuser_1 … testuser_$USER_POOL_SIZE  /  Student@123\n";
+echo "Student pool:  testuser_1 … testuser_$USER_POOL_SIZE  /  Student@$passwordSuffix\n";
 echo "Total users in pool: $USER_POOL_SIZE\n\n";
-echo "Role accounts:\n";
-echo "  manager            / Manager@123456\n";
-echo "  coursecreator      / Coursecreator@123456\n";
-echo "  teacher            / Teacher@123456\n";
-echo "  noneditingteacher  / Noneditingteacher@123456\n";
-echo "  student            / Student@123456\n\n";
+echo "Role accounts (password suffix: $passwordSuffix):\n";
+echo "  manager            / Manager@$passwordSuffix\n";
+echo "  coursecreator      / Coursecreator@$passwordSuffix\n";
+echo "  teacher            / Teacher@$passwordSuffix\n";
+echo "  noneditingteacher  / Noneditingteacher@$passwordSuffix\n";
+echo "  student            / Student@$passwordSuffix\n\n";

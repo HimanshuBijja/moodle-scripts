@@ -40,6 +40,10 @@ if ! [[ "$PORT" =~ ^[0-9]+$ ]] || [ "$PORT" -lt 1024 ] || [ "$PORT" -gt 65535 ];
     exit 1
 fi
 
+# Get password suffix for role accounts
+read -p "Enter password suffix for all accounts (default: 123456): " ROLE_PASS_SUFFIX
+ROLE_PASS_SUFFIX=${ROLE_PASS_SUFFIX:-123456}
+
 # Derive DB port from the web port (last 2 digits prefixed with 33)
 # e.g., 8088 -> 3388, 8082 -> 3382
 DB_PORT="33${PORT: -2}"
@@ -218,7 +222,7 @@ sleep 5
 
 # Define admin credentials
 ADMIN_USER="admin"
-ADMIN_PASS="Admin@123456"
+ADMIN_PASS="Admin@${ROLE_PASS_SUFFIX}"
 ADMIN_EMAIL="admin@example.com"
 SITE_NAME="Moodle $MOODLE_VERSION - Instance $PORT"
 
@@ -280,11 +284,19 @@ echo "  - Path: $INSTANCE_PATH"
 echo "  - Moodle Version: $MOODLE_VERSION (branch: $MOODLE_BRANCH)"
 echo "  - URL: http://$IP_ADDRESS:$PORT"
 echo "  - DB Port: $DB_PORT"
+echo "  - Password Suffix: $ROLE_PASS_SUFFIX"
 echo ""
 echo "Admin Login Credentials:"
 echo "  - Username: $ADMIN_USER"
 echo "  - Password: $ADMIN_PASS"
 echo "  - Email: $ADMIN_EMAIL"
+echo ""
+echo "Role Account Passwords (suffix: $ROLE_PASS_SUFFIX):"
+echo "  - manager            / Manager@$ROLE_PASS_SUFFIX"
+echo "  - coursecreator      / Coursecreator@$ROLE_PASS_SUFFIX"
+echo "  - teacher            / Teacher@$ROLE_PASS_SUFFIX"
+echo "  - noneditingteacher  / Noneditingteacher@$ROLE_PASS_SUFFIX"
+echo "  - student            / Student@$ROLE_PASS_SUFFIX"
 echo ""
 echo "Container Names:"
 echo "  - Web: moodle-web-$PORT"
