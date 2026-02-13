@@ -1,0 +1,106 @@
+{
+  "customLabels": [
+    {
+      "path": "moodle/mod/quiz/lang/en/quiz.php",
+      "line": "560",
+      "from": "$string['modulename'] = 'Quiz';",
+      "to": "$string['modulename'] = 'Assessment';"
+    },
+    {
+      "path": "moodle/mod/resource/lang/en/resource.php",
+      "line": "77",
+      "from": "$string['modulename'] = 'File';",
+      "to": "$string['modulename'] = 'Topic';"
+    },
+    {
+      "path": "moodle/mod/folder/lang/en/folder.php",
+      "line": "47",
+      "from": "$string['modulename'] = 'Folder';",
+      "to": "$string['modulename'] = 'Training Material';"
+    },
+    {
+      "path": "moodle/mod/lesson/lang/en/lesson.php",
+      "line": "344",
+      "from": "$string['modulename'] = 'Lesson';",
+      "to": "$string['modulename'] = 'Training';"
+    },
+    {
+      "path": "moodle/mod/workshop/lang/en/workshop.php",
+      "line": "",
+      "from": "$string['modulename'] = 'Workshop';",
+      "to": "$string['modulename'] = 'Workshop';"
+    },
+    {
+      "path": "moodle/mod/imscp/lang/en/imscp.php",
+      "line": "43",
+      "from": "$string['modulename'] = 'IMS content package';",
+      "to": "$string['modulename'] = 'Digital Learning Package';"
+    },
+    {
+      "path": "moodle/mod/scorm/lang/en/scorm.php",
+      "line": "277",
+      "from": "$string['modulename'] = 'SCORM package';",
+      "to": "$string['modulename'] = 'Standard E-Learning Module';"
+    },
+    {
+      "path": "moodle/mod/book/lang/en/book.php",
+      "line": "27",
+      "from": "$string['modulename'] = 'Book';",
+      "to": "$string['modulename'] = 'E-Library';"
+    },
+    {
+      "path": "moodle/mod/choice/lang/en/choice.php",
+      "line": "90",
+      "from": "$string['modulename'] = 'Choice';",
+      "to": "$string['modulename'] = 'Choice';"
+    },
+    {
+      "path": "moodle/mod/data/lang/en/data.php",
+      "line": "293",
+      "from": "$string['modulename'] = 'Database';",
+      "to": "$string['modulename'] = 'Database';"
+    },
+    {
+      "path": "moodle/mod/forum/lang/en/forum.php",
+      "line": "432",
+      "from": "$string['modulename'] = 'Forum';",
+      "to": "$string['modulename'] = 'Forum';"
+    },
+    {
+      "path": "moodle/mod/glossary/lang/en/glossary.php",
+      "line": "242",
+      "from": "$string['modulename'] = 'Glossary';",
+      "to": "$string['modulename'] = 'Glossary';"
+    },
+    {
+      "path": "moodle/mod/h5pactivity/lang/en/h5pactivity.php",
+      "line": "95",
+      "from": "$string['modulename'] = 'H5P';",
+      "to": "$string['modulename'] = 'H5P';"
+    },
+    {
+      "path": "moodle/mod/label/lang/en/label.php",
+      "line": "49",
+      "from": "$string['modulename'] = 'Text and media area';",
+      "to": "$string['modulename'] = 'Text and media area';"
+    },
+    {
+        "path": "moodle/mod/url/lang/en/url.php",
+        "line": "61",
+        "from": "$string['modulename'] = 'URL';",
+        "to": "$string['modulename'] = 'URL';"
+    },
+    {
+      "path": "moodle/mod/wiki/lang/en/wiki.php",
+      "line": "140",
+      "from": "$string['modulename'] = 'Wiki';",
+      "to": "$string['modulename'] = 'Wiki';"
+    },
+    {
+      "path": "moodle/mod/bigbluebuttonbn/lang/en/bigbluebuttonbn.php",
+      "line": "54",
+      "from": "$string['modulename'] = 'BigBlueButton';",
+      "to": "$string['modulename'] = 'Virtual Training';"
+    }
+  ]
+}
