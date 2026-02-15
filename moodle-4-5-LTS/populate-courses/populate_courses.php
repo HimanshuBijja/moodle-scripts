@@ -14,6 +14,10 @@ require(__DIR__ . '/config.php');
 
 global $DB, $CFG, $USER;
 
+// Prevent email errors by setting a valid noreply address and disabling email sending.
+$CFG->noreplyaddress = 'noreply@example.com';
+$CFG->noemailever = true;
+
 require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->dirroot . '/lib/enrollib.php');
 require_once($CFG->dirroot . '/user/lib.php');
