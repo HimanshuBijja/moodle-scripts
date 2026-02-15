@@ -1,0 +1,8 @@
+{
+  "file_changes": [
+    {
+      "path": "moodle/user/editlib.php",
+      "choice": "new"
+    }
+  ]
+}
