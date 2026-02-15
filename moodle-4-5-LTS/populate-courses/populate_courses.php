@@ -47,19 +47,19 @@ $MAX_USERS  = 100;
 $USER_POOL_SIZE = 150;
 
 $FIRST_NAMES = [
-    'James','Mary','Robert','Patricia','John','Jennifer','Michael','Linda','David','Elizabeth',
-    'William','Barbara','Richard','Susan','Joseph','Jessica','Thomas','Sarah','Christopher','Karen',
-    'Charles','Lisa','Daniel','Nancy','Matthew','Betty','Anthony','Margaret','Mark','Sandra',
-    'Donald','Ashley','Steven','Kimberly','Paul','Emily','Andrew','Donna','Joshua','Michelle',
-    'Kenneth','Carol','Kevin','Amanda','Brian','Dorothy','George','Melissa','Timothy','Deborah',
+    'Ravi', 'Suresh', 'Ramesh', 'Srinivas', 'Venkatesh', 'Harish', 'Naresh', 'Satish', 'Praveen', 'Mahesh',
+    'Kavita', 'Sunita', 'Anita', 'Swathi', 'Jyothi', 'Ramya', 'Sravani', 'Mamatha', 'Lavanya', 'Padma',
+    'Sai', 'Krishna', 'Arjun', 'Vijay', 'Bhanu', 'Chandu', 'Durga', 'Eswar', 'Ganesh', 'Hanumanth',
+    'Indra', 'Jagadeesh', 'Karthik', 'Lakshmi', 'Manasa', 'Nagaraju', 'Omprakash', 'Pradeep', 'Rajesh', 'Shiva',
+    'Tirupati', 'Uma', 'Vamshi', 'Anil', 'Kiran', 'Aishwarya', 'Bhavani', 'Charitha', 'Divya', 'Sandeep',
 ];
 
 $LAST_NAMES = [
-    'Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez',
-    'Hernandez','Lopez','Gonzalez','Wilson','Anderson','Thomas','Taylor','Moore','Jackson','Martin',
-    'Lee','Perez','Thompson','White','Harris','Sanchez','Clark','Ramirez','Lewis','Robinson',
-    'Walker','Young','Allen','King','Wright','Scott','Torres','Nguyen','Hill','Flores',
-    'Green','Adams','Nelson','Baker','Hall','Rivera','Campbell','Mitchell','Carter','Roberts',
+    'Reddy', 'Rao', 'Goud', 'Sharma', 'Chary', 'Varma', 'Raju', 'Gupta', 'Singh', 'Kumar',
+    'Patel', 'Naidu', 'Chowdary', 'Yadav', 'Mudiraj', 'Kamma', 'Kapu', 'Velama', 'Bommena', 'Katta',
+    'Palle', 'Thota', 'Mekala', 'Gujjula', 'Marri', 'Singireddy', 'Vangala', 'Pittala', 'Gajula', 'Boddu',
+    'Challa', 'Duggirala', 'Gampa', 'Hanamkonda', 'Irukulla', 'Jolla', 'Kasarla', 'Lakkakula', 'Mitta', 'Nalla',
+    'Odnala', 'Pula', 'Racha', 'Salla', 'Tummala', 'Uppala', 'Vavilala', 'Yellamma', 'Zilla', 'Komaravelli',
 ];
 
 $COURSE_DEFS = [
