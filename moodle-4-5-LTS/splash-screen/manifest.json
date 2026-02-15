@@ -1,0 +1,19 @@
+{
+  "file_changes": [
+    {
+      "path": "moodle/theme/boost_union/templates/theme_boost/login.mustache",
+      "local_path": "splash_login_mustache",
+      "choice": "new"
+    },
+    {
+      "path": "moodle/theme/boost_union/layout/login.php",
+      "local_path": "splash_login_php",
+      "choice": "new"
+    },
+    {
+      "path": "moodle/theme/boost_union/pix",
+      "local_path": "splash_pix",
+      "choice": "new"
+    }
+  ]
+}
