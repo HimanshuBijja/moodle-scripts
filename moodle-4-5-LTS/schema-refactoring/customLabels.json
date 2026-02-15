@@ -82,7 +82,7 @@
       "path": "moodle/mod/label/lang/en/label.php",
       "line": "49",
       "from": "$string['modulename'] = 'Text and media area';",
-      "to": "$string['modulename'] = 'Text and media area';"
+      "to": "$string['modulename'] = 'Time Table';"
     },
     {
         "path": "moodle/mod/url/lang/en/url.php",
