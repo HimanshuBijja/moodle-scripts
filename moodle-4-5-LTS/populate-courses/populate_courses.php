@@ -370,18 +370,37 @@ echo "Creating user pool of $USER_POOL_SIZE users...\n";
 $users = [];
 for ($i = 1; $i <= $USER_POOL_SIZE; $i++) {
     $uname = 'testuser_' . $i;
+    
+    // Generate new details
+    $newFirstname = $FIRST_NAMES[array_rand($FIRST_NAMES)];
+    $newLastname  = $LAST_NAMES[array_rand($LAST_NAMES)];
+    $newEmail     = $uname . '@test.moodle.local';
+    $newPassword  = 'Student@' . $passwordSuffix;
+
     $existing = $DB->get_record('user', ['username' => $uname]);
     if ($existing) {
-        $users[] = $existing;
-        echo '.';
+        // Update existing user
+        $updateUser = new stdClass();
+        $updateUser->id        = $existing->id;
+        $updateUser->firstname = $newFirstname;
+        $updateUser->lastname  = $newLastname;
+        $updateUser->email     = $newEmail;
+        $updateUser->password  = hash_internal_user_password($newPassword);
+        
+        $DB->update_record('user', $updateUser);
+        
+        // Reload the full record
+        $users[] = $DB->get_record('user', ['id' => $existing->id]);
+        echo 'u'; // 'u' for updated
         continue;
     }
+
     $u = new stdClass();
     $u->username    = $uname;
-    $u->password    = 'Student@' . $passwordSuffix;
-    $u->firstname   = $FIRST_NAMES[array_rand($FIRST_NAMES)];
-    $u->lastname    = $LAST_NAMES[array_rand($LAST_NAMES)];
-    $u->email       = $uname . '@test.moodle.local';
+    $u->password    = $newPassword; // user_create_user handles hashing
+    $u->firstname   = $newFirstname;
+    $u->lastname    = $newLastname;
+    $u->email       = $newEmail;
     $u->auth        = 'manual';
     $u->confirmed   = 1;
     $u->mnethostid  = $CFG->mnet_localhost_id;

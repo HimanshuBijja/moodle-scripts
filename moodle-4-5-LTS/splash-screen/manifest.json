@@ -11,6 +11,11 @@
       "choice": "new"
     },
     {
+      "path": "moodle/admin/tool/moodlenet/templates/chooser_footer.mustache",
+      "local_path": "moodlenet_chooser_footer_mustache",
+      "choice": "new"
+    },
+    {
       "path": "moodle/theme/boost_union/pix",
       "local_path": "splash_pix",
       "choice": "new"
