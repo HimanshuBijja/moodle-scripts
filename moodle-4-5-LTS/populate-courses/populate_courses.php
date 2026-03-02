@@ -165,6 +165,91 @@ $SUBMISSION_TEXTS = [
     '<p>My submission addresses the assignment objectives as outlined in the brief. I explored various approaches before settling on the methodology presented here, which I believe best demonstrates the skills and knowledge acquired during this course.</p>',
 ];
 
+$FEEDBACK_QUESTIONS_COURSE = [
+    [
+        'typ' => 'multichoice',
+        'name' => 'Overall Satisfaction',
+        'label' => 'q_satisfaction',
+        'presentation' => "r>>>>>Very Dissatisfied\n|Dissatisfied\n|Neutral\n|Satisfied\n|Very Satisfied",
+    ],
+    [
+        'typ' => 'multichoice',
+        'name' => 'Course Content Quality',
+        'label' => 'q_content',
+        'presentation' => "r>>>>>Poor\n|Below Average\n|Average\n|Good\n|Excellent",
+    ],
+    [
+        'typ' => 'multichoice',
+        'name' => 'Instructor Effectiveness',
+        'label' => 'q_instructor',
+        'presentation' => "r>>>>>Poor\n|Below Average\n|Average\n|Good\n|Excellent",
+    ],
+    [
+        'typ' => 'multichoice',
+        'name' => 'Would You Recommend This Course?',
+        'label' => 'q_recommend',
+        'presentation' => "r>>>>>Definitely Not\n|Probably Not\n|Maybe\n|Probably Yes\n|Definitely Yes",
+    ],
+    [
+        'typ' => 'textarea',
+        'name' => 'Additional Comments',
+        'label' => 'q_comments',
+        'presentation' => '40|5',
+    ],
+];
+
+$FEEDBACK_QUESTIONS_OVERALL = [
+    [
+        'typ' => 'multichoice',
+        'name' => 'Overall Program Satisfaction',
+        'label' => 'q_program_satisfaction',
+        'presentation' => "r>>>>>Very Dissatisfied\n|Dissatisfied\n|Neutral\n|Satisfied\n|Very Satisfied",
+    ],
+    [
+        'typ' => 'multichoice',
+        'name' => 'Quality of Learning Materials',
+        'label' => 'q_materials',
+        'presentation' => "r>>>>>Poor\n|Below Average\n|Average\n|Good\n|Excellent",
+    ],
+    [
+        'typ' => 'multichoice',
+        'name' => 'Support and Guidance Received',
+        'label' => 'q_support',
+        'presentation' => "r>>>>>Poor\n|Below Average\n|Average\n|Good\n|Excellent",
+    ],
+    [
+        'typ' => 'multichoice',
+        'name' => 'Relevance to Career Goals',
+        'label' => 'q_relevance',
+        'presentation' => "r>>>>>Not Relevant\n|Slightly Relevant\n|Moderately Relevant\n|Very Relevant\n|Extremely Relevant",
+    ],
+    [
+        'typ' => 'multichoice',
+        'name' => 'Would You Recommend This Program?',
+        'label' => 'q_recommend_program',
+        'presentation' => "r>>>>>Definitely Not\n|Probably Not\n|Maybe\n|Probably Yes\n|Definitely Yes",
+    ],
+    [
+        'typ' => 'textarea',
+        'name' => 'Suggestions for Improvement',
+        'label' => 'q_suggestions',
+        'presentation' => '40|5',
+    ],
+];
+
+$FEEDBACK_COMMENTS = [
+    'The course was very well structured and easy to follow.',
+    'I learned a lot from the practical exercises and assignments.',
+    'The instructor was knowledgeable and approachable.',
+    'I would appreciate more real-world examples in future sessions.',
+    'Overall a great experience. Looking forward to more courses like this.',
+    'Some topics could have been covered in more depth.',
+    'The pace was just right for my level of understanding.',
+    'Excellent learning materials and resources provided.',
+    'I found the discussion forums very helpful for clarifying doubts.',
+    'More interactive sessions would enhance the learning experience.',
+];
+
 // ──────────────────────────────────────────────
 // HELPER FUNCTIONS
 // ──────────────────────────────────────────────
@@ -360,6 +445,88 @@ function random_timestamp($start, $end) {
     return rand($start, $end);
 }
 
+function add_feedback($courseid, $name, $intro, $questions, $sectionnum, $anonymous = 1) {
+    global $DB;
+    $fb = new stdClass();
+    $fb->course             = $courseid;
+    $fb->name               = $name;
+    $fb->intro              = '<p>' . $intro . '</p>';
+    $fb->introformat        = FORMAT_HTML;
+    $fb->anonymous          = $anonymous;  // 1 = anonymous, 2 = user names shown
+    $fb->email_notification = 0;
+    $fb->multiple_submit    = 0;
+    $fb->autonumbering      = 1;
+    $fb->site_after_submit  = '';
+    $fb->page_after_submit  = '<p>Thank you for your feedback!</p>';
+    $fb->page_after_submitformat = FORMAT_HTML;
+    $fb->publish_stats      = 1;
+    $fb->timeopen           = 0;
+    $fb->timeclose          = 0;
+    $fb->timemodified       = time();
+    $fb->completionsubmit   = 1;
+    $fb->id = $DB->insert_record('feedback', $fb);
+
+    $fb->items = [];
+    $position = 1;
+    foreach ($questions as $q) {
+        $item = new stdClass();
+        $item->feedback      = $fb->id;
+        $item->template      = 0;
+        $item->name          = $q['name'];
+        $item->label         = $q['label'];
+        $item->typ           = $q['typ'] === 'multichoice' ? 'multichoice' : 'textarea';
+        $item->presentation  = $q['presentation'];
+        $item->hasvalue      = 1;
+        $item->position      = $position;
+        $item->required      = ($q['typ'] === 'textarea') ? 0 : 1;
+        $item->dependitem    = 0;
+        $item->dependvalue   = '';
+        $item->options       = '';
+        $item->id = $DB->insert_record('feedback_item', $item);
+        $fb->items[] = $item;
+        $position++;
+    }
+
+    $fb->cmid = populate_add_cm($courseid, 'feedback', $fb->id, $sectionnum);
+    return $fb;
+}
+
+function submit_feedback($feedback, $userid, $timestamp, $commentTexts = []) {
+    global $DB;
+    $completed = new stdClass();
+    $completed->feedback      = $feedback->id;
+    $completed->userid        = $userid;
+    $completed->timemodified  = $timestamp;
+    $completed->random_response = 0;
+    $completed->anonymous_response = ($feedback->anonymous == 1) ? 1 : 2;
+    $completed->id = $DB->insert_record('feedback_completed', $completed);
+
+    foreach ($feedback->items as $item) {
+        $val = new stdClass();
+        $val->item       = $item->id;
+        $val->completed  = $completed->id;
+        $val->course_id  = $feedback->course;
+
+        if ($item->typ === 'multichoice') {
+            // Count the options by splitting on the newline-pipe separator.
+            $options = explode("\n|", $item->presentation);
+            $numOptions = count($options);
+            $val->value = (string) rand(1, $numOptions);
+        } else {
+            // textarea — pick a random comment or leave empty.
+            if (!empty($commentTexts)) {
+                $val->value = $commentTexts[array_rand($commentTexts)];
+            } else {
+                $val->value = '';
+            }
+        }
+
+        $val->tmp_completed = 0;
+        $DB->insert_record('feedback_value', $val);
+    }
+    return $completed;
+}
+
 // ──────────────────────────────────────────────
 // MAIN EXECUTION
 // ──────────────────────────────────────────────
@@ -530,6 +697,22 @@ foreach ($COURSE_DEFS as $idx => $def) {
     }
     echo '  ✓ ' . count($pages) . " page(s) created\n";
 
+    // ── Create course feedback form ──
+    $fbName  = 'Course Feedback: ' . $def['fullname'];
+    $fbIntro = 'Please share your feedback on the course: ' . $def['fullname'] . '. Your responses help us improve.';
+    $courseFeedback = add_feedback($course->id, $fbName, $fbIntro, $FEEDBACK_QUESTIONS_COURSE, $section);
+    echo "  ✓ Course feedback form created\n";
+
+    // Simulate ~50% of enrolled students completing the feedback.
+    $fbRespondents = array_slice($enrolledUsers, 0, (int)(count($enrolledUsers) * 0.5));
+    $fbResponseCount = 0;
+    foreach ($fbRespondents as $fbu) {
+        $ts = random_timestamp($startdate, $enddate);
+        submit_feedback($courseFeedback, $fbu->id, $ts, $FEEDBACK_COMMENTS);
+        $fbResponseCount++;
+    }
+    echo "  ✓ $fbResponseCount feedback responses submitted\n";
+
     // Rebuild course cache after adding modules.
     rebuild_course_cache($course->id, true);
 
@@ -622,11 +805,71 @@ foreach ($COURSE_DEFS as $idx => $def) {
     echo "  ✓ $completionCount/$numUsers students completed the course ($completionPercent%)\n";
 
     $summaryLines[] = sprintf(
-        "  %d. %-40s | %2d days | %3d users | %d forums | %d assigns | %d pages",
+        "  %d. %-40s | %2d days | %3d users | %d forums | %d assigns | %d pages | %d feedback responses",
         $idx + 1, $def['fullname'], $duration, $numUsers,
-        count($forums), count($assigns), count($pages)
+        count($forums), count($assigns), count($pages), $fbResponseCount
     );
 }
+
+// ── Create Overall Program Feedback course ──
+echo str_repeat('─', 50) . "\n";
+echo "Creating Overall Program Feedback course...\n";
+
+$overallCourseData = new stdClass();
+$overallCourseData->fullname    = 'Overall Program Feedback';
+$overallCourseData->shortname   = 'FEEDBACK_OVERALL_' . time();
+$overallCourseData->summary     = 'Share your overall experience and help us improve the program.';
+$overallCourseData->summaryformat = FORMAT_HTML;
+$overallCourseData->format      = 'topics';
+$overallCourseData->numsections = 1;
+$overallCourseData->startdate   = time() - (30 * 86400);
+$overallCourseData->enddate     = time() + (60 * 86400);
+$overallCourseData->category    = 1;
+$overallCourseData->enablecompletion = 1;
+$overallCourse = create_course($overallCourseData);
+echo "  ✓ Overall feedback course created (id={$overallCourse->id})\n";
+
+// Enrol all pool users + role accounts.
+$overallInstances = enrol_get_instances($overallCourse->id, true);
+$overallManual = null;
+foreach ($overallInstances as $inst) {
+    if ($inst->enrol === 'manual') { $overallManual = $inst; break; }
+}
+if (!$overallManual) {
+    $eid = $enrolplugin->add_instance($overallCourse);
+    $overallManual = $DB->get_record('enrol', ['id' => $eid]);
+}
+foreach ($users as $u) {
+    $enrolplugin->enrol_user($overallManual, $u->id, $studentrole->id);
+}
+$enrolplugin->enrol_user($overallManual, $adminid, $editteacherrole->id);
+foreach ($roleUserIds as $ra) {
+    $rarole = $DB->get_record('role', ['shortname' => $ra['role']], '*', MUST_EXIST);
+    $enrolplugin->enrol_user($overallManual, $ra['id'], $rarole->id);
+}
+echo "  ✓ All pool users + role accounts enrolled\n";
+
+// Create the overall feedback activity.
+$overallFb = add_feedback(
+    $overallCourse->id,
+    'Overall Program Feedback',
+    'Please share your overall feedback on the entire program. Your input helps us improve all courses.',
+    $FEEDBACK_QUESTIONS_OVERALL,
+    1
+);
+echo "  ✓ Overall feedback form created\n";
+
+// Simulate ~40% of all pool users completing the overall feedback.
+$overallRespondents = array_slice($users, 0, (int)(count($users) * 0.4));
+$overallResponseCount = 0;
+foreach ($overallRespondents as $oru) {
+    $ts = random_timestamp(time() - (30 * 86400), time());
+    submit_feedback($overallFb, $oru->id, $ts, $FEEDBACK_COMMENTS);
+    $overallResponseCount++;
+}
+echo "  ✓ $overallResponseCount overall feedback responses submitted\n";
+
+rebuild_course_cache($overallCourse->id, true);
 
 // ── Final summary ──
 echo "\n" . str_repeat('═', 60) . "\n";
@@ -636,6 +879,7 @@ echo "Courses created:\n";
 foreach ($summaryLines as $line) {
     echo $line . "\n";
 }
+echo "\nOverall Program Feedback course: {$overallCourse->id} ($overallResponseCount responses)\n\n";
 echo "Student pool:  testuser_1 … testuser_$USER_POOL_SIZE  /  Student@$passwordSuffix\n";
 echo "Total users in pool: $USER_POOL_SIZE\n\n";
 echo "Role accounts (password suffix: $passwordSuffix):\n";

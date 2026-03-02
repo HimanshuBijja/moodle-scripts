@@ -101,6 +101,12 @@
       "line": "54",
       "from": "$string['modulename'] = 'BigBlueButton';",
       "to": "$string['modulename'] = 'Virtual Training';"
+    },
+    {
+      "path": "moodle/my/courses.php",
+      "line": "78",
+      "from": "$coursemanagemenu['newcourseurl'] = new moodle_url('/course/edit.php', ['category' => $category->id]);",
+      "to": "$coursemanagemenu['newcourseurl'] = new moodle_url('/local/timetablebuilder/index.php');"
     }
   ]
 }

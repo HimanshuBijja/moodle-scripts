@@ -3,6 +3,10 @@
     {
       "path": "moodle/user/editlib.php",
       "choice": "new"
+    },
+    {
+      "path": "moodle/course/templates/local/activitychooser/item.mustache",
+      "choice": "new"
     }
   ]
 }
