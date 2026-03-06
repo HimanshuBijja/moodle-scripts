@@ -6,6 +6,14 @@
     },
     {
       "path": "moodle/course/templates/local/activitychooser/item.mustache",
+      "choice": "default"
+    },
+    {
+      "path": "moodle/theme/boost/templates/footer.mustache",
+      "choice": "default"
+    },
+    {
+      "path": "moodle/local/analysis_dashboard/classes/output/student_dashboard_page.php",
       "choice": "new"
     }
   ]
