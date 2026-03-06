@@ -31,15 +31,17 @@ $USER = get_admin();
 
 // Parse CLI options.
 [$options, $unrecognised] = cli_get_params(
-    ['password-suffix' => '123456', 'help' => false],
-    ['p' => 'password-suffix', 'h' => 'help']
+    ['password-suffix' => '123456', 'num-courses' => 0, 'help' => false],
+    ['p' => 'password-suffix', 'n' => 'num-courses', 'h' => 'help']
 );
 if ($options['help']) {
-    echo "Usage: php populate_courses.php [--password-suffix=SUFFIX]\n";
+    echo "Usage: php populate_courses.php [--password-suffix=SUFFIX] [--num-courses=N]\n";
     echo "  --password-suffix, -p   Password suffix for all accounts (default: 123456)\n";
+    echo "  --num-courses, -n       Number of courses to create (default: all 7)\n";
     exit(0);
 }
 $passwordSuffix = $options['password-suffix'];
+$numCourses = (int) $options['num-courses'];
 
 // ──────────────────────────────────────────────
 // CONFIGURATION
@@ -68,7 +70,7 @@ $LAST_NAMES = [
 
 $COURSE_DEFS = [
     [
-        'fullname'  => 'Introduction to Programming',
+        'fullname'  => 'Introduction to Programming1',
         'shortname' => 'PROG101',
         'summary'   => 'Learn the fundamentals of programming with hands-on exercises.',
         'forums'    => ['Getting Started with Code', 'Code Help & Discussion'],
@@ -76,7 +78,7 @@ $COURSE_DEFS = [
         'pages'     => ['Programming Resources'],
     ],
     [
-        'fullname'  => 'Digital Marketing Essentials',
+        'fullname'  => 'Digital Marketing Essentials1',
         'shortname' => 'DMKT201',
         'summary'   => 'Explore SEO, social media, and online advertising strategies.',
         'forums'    => ['Marketing Strategy Discussion'],
@@ -84,7 +86,7 @@ $COURSE_DEFS = [
         'pages'     => ['Marketing Tools Guide', 'Case Studies'],
     ],
     [
-        'fullname'  => 'Data Analytics Fundamentals',
+        'fullname'  => 'Data Analytics Fundamentals1',
         'shortname' => 'DATA301',
         'summary'   => 'Master data analysis using modern tools and techniques.',
         'forums'    => ['Data Analysis Q&A', 'Tool Tips & Tricks'],
@@ -92,7 +94,7 @@ $COURSE_DEFS = [
         'pages'     => ['Reference Materials'],
     ],
     [
-        'fullname'  => 'Business Communication',
+        'fullname'  => 'Business Communication1',
         'shortname' => 'BCOM101',
         'summary'   => 'Develop professional writing, presentation, and negotiation skills.',
         'forums'    => ['Presentation Skills', 'Writing Workshop', 'Networking Tips'],
@@ -100,7 +102,7 @@ $COURSE_DEFS = [
         'pages'     => ['Communication Best Practices'],
     ],
     [
-        'fullname'  => 'Web Development Bootcamp',
+        'fullname'  => 'Web Development Bootcamp1',
         'shortname' => 'WEBDEV401',
         'summary'   => 'Build modern websites with HTML, CSS, and JavaScript.',
         'forums'    => ['HTML & CSS Help', 'JavaScript Discussion'],
@@ -108,7 +110,7 @@ $COURSE_DEFS = [
         'pages'     => ['Web Dev Resources'],
     ],
     [
-        'fullname'  => 'Project Management',
+        'fullname'  => 'Project Management1',
         'shortname' => 'PM201',
         'summary'   => 'Learn agile, scrum, and traditional project management methodologies.',
         'forums'    => ['PM Methodologies Discussion'],
@@ -116,7 +118,7 @@ $COURSE_DEFS = [
         'pages'     => ['PM Templates Collection', 'Agile vs Waterfall Guide'],
     ],
     [
-        'fullname'  => 'Research Methodology',
+        'fullname'  => 'Research Methodology1',
         'shortname' => 'RSCH501',
         'summary'   => 'Understand qualitative and quantitative research methods.',
         'forums'    => ['Research Design Discussion', 'Literature Review Help'],
@@ -124,6 +126,11 @@ $COURSE_DEFS = [
         'pages'     => ['Research Ethics Guide'],
     ],
 ];
+
+$totalDefs = count($COURSE_DEFS);
+if ($numCourses <= 0) {
+    $numCourses = $totalDefs; // default: create all defined courses
+}
 
 $DISCUSSION_SUBJECTS = [
     'Has anyone tried a different approach to this topic?',
@@ -622,20 +629,23 @@ echo "\n";
 
 $summaryLines = [];
 
-foreach ($COURSE_DEFS as $idx => $def) {
+for ($idx = 0; $idx < $numCourses; $idx++) {
+    $def = $COURSE_DEFS[$idx % $totalDefs];
     $duration    = $DURATIONS[array_rand($DURATIONS)];
     $numUsers    = rand($MIN_USERS, $MAX_USERS);
     $startdate   = time() - ($duration * 86400);
     $enddate     = time() + (30 * 86400);
     $shortname   = $def['shortname'] . '_' . time() . '_' . $idx;
+    // When cycling past the original definitions, make the fullname unique.
+    $courseName  = $def['fullname'] . ($idx >= $totalDefs ? ' (' . ($idx + 1) . ')' : '');
 
     echo str_repeat('─', 50) . "\n";
-    echo "Course " . ($idx + 1) . "/7: {$def['fullname']}\n";
+    echo "Course " . ($idx + 1) . "/$numCourses: $courseName\n";
     echo "  Duration: $duration days | Users: $numUsers\n";
 
     // ── Create course ──
     $coursedata = new stdClass();
-    $coursedata->fullname    = $def['fullname'];
+    $coursedata->fullname    = $courseName;
     $coursedata->shortname   = $shortname;
     $coursedata->summary     = $def['summary'];
     $coursedata->summaryformat = FORMAT_HTML;
@@ -697,21 +707,26 @@ foreach ($COURSE_DEFS as $idx => $def) {
     }
     echo '  ✓ ' . count($pages) . " page(s) created\n";
 
-    // ── Create course feedback form ──
-    $fbName  = 'Course Feedback: ' . $def['fullname'];
-    $fbIntro = 'Please share your feedback on the course: ' . $def['fullname'] . '. Your responses help us improve.';
-    $courseFeedback = add_feedback($course->id, $fbName, $fbIntro, $FEEDBACK_QUESTIONS_COURSE, $section);
-    echo "  ✓ Course feedback form created\n";
-
-    // Simulate ~50% of enrolled students completing the feedback.
-    $fbRespondents = array_slice($enrolledUsers, 0, (int)(count($enrolledUsers) * 0.5));
+    // ── Create per-section feedback forms (Day X Feedback - Session X) ──
+    $numSections = 5;
     $fbResponseCount = 0;
-    foreach ($fbRespondents as $fbu) {
-        $ts = random_timestamp($startdate, $enddate);
-        submit_feedback($courseFeedback, $fbu->id, $ts, $FEEDBACK_COMMENTS);
-        $fbResponseCount++;
+    for ($sec = 1; $sec <= $numSections; $sec++) {
+        $fbName  = "Day $sec Feedback - Session $sec";
+        $fbIntro = "Please share your feedback for Day $sec (Session $sec) of the course: $courseName. Your responses help us improve.";
+        $sectionFeedback = add_feedback($course->id, $fbName, $fbIntro, $FEEDBACK_QUESTIONS_COURSE, $sec);
+
+        // Simulate ~50% of enrolled students completing the feedback (minimum 4).
+        $fbRespondents = array_slice($enrolledUsers, 0, (int)(count($enrolledUsers) * 0.5));
+        if (count($fbRespondents) < 4) {
+            $fbRespondents = array_slice($enrolledUsers, 0, min(4, count($enrolledUsers)));
+        }
+        foreach ($fbRespondents as $fbu) {
+            $ts = random_timestamp($startdate, $enddate);
+            submit_feedback($sectionFeedback, $fbu->id, $ts, $FEEDBACK_COMMENTS);
+            $fbResponseCount++;
+        }
     }
-    echo "  ✓ $fbResponseCount feedback responses submitted\n";
+    echo "  ✓ $numSections section feedback forms created ($fbResponseCount total responses)\n";
 
     // Rebuild course cache after adding modules.
     rebuild_course_cache($course->id, true);
@@ -806,7 +821,7 @@ foreach ($COURSE_DEFS as $idx => $def) {
 
     $summaryLines[] = sprintf(
         "  %d. %-40s | %2d days | %3d users | %d forums | %d assigns | %d pages | %d feedback responses",
-        $idx + 1, $def['fullname'], $duration, $numUsers,
+        $idx + 1, $courseName, $duration, $numUsers,
         count($forums), count($assigns), count($pages), $fbResponseCount
     );
 }

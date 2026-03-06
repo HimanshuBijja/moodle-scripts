@@ -4,12 +4,12 @@
 # Copies the PHP population script into the Moodle webroot and executes it.
 #
 # Usage:
-#   ./populate-moodle-native.sh <moodle-base-dir> [password-suffix]
+#   ./populate-moodle-native.sh <moodle-base-dir> [num-courses] [password-suffix]
 #
 # Examples:
 #   ./populate-moodle-native.sh ~/moodle-instances/moodle-instance-8088
-#   ./populate-moodle-native.sh /var/www/moodle-base MyPass99
-#
+#   ./populate-moodle-native.sh /var/www/moodle-base 1
+#   ./populate-moodle-native.sh /var/www/moodle-base 3 MyPass99
 # The <moodle-base-dir> should contain a 'moodle/' folder (the webroot).
 
 set -e
@@ -24,10 +24,11 @@ print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 print_error()   { echo -e "${RED}[ERROR]${NC} $1"; }
 
 if [ -z "$1" ]; then
-    print_error "Usage: $0 <moodle-base-dir> [password-suffix]"
+    print_error "Usage: $0 <moodle-base-dir> [num-courses] [password-suffix]"
     echo "  Examples:"
     echo "    $0 ~/moodle-instances/moodle-instance-8088"
-    echo "    $0 /var/www/moodle-base MyPass99"
+    echo "    $0 /var/www/moodle-base 1"
+    echo "    $0 /var/www/moodle-base 3 MyPass99"
     exit 1
 fi
 
@@ -44,12 +45,17 @@ else
     exit 1
 fi
 
-# Get password suffix.
+# Get number of courses.
+NUM_COURSES_ARG=""
 if [ -n "$2" ]; then
-    PASSWORD_SUFFIX="$2"
+    NUM_COURSES_ARG="--num-courses=$2"
+fi
+
+# Get password suffix.
+if [ -n "$3" ]; then
+    PASSWORD_SUFFIX="$3"
 else
-    read -p "Enter password suffix for all accounts (default: 123456): " PASSWORD_SUFFIX
-    PASSWORD_SUFFIX=${PASSWORD_SUFFIX:-123456}
+    PASSWORD_SUFFIX="123456"
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -73,7 +79,7 @@ cp "$PHP_SCRIPT" "$MOODLE_ROOT/populate_courses.php"
 
 print_info "Running population script with password suffix: $PASSWORD_SUFFIX"
 print_info "This may take a few minutes..."
-"$PHP_BIN" "$MOODLE_ROOT/populate_courses.php" --password-suffix="$PASSWORD_SUFFIX"
+"$PHP_BIN" "$MOODLE_ROOT/populate_courses.php" --password-suffix="$PASSWORD_SUFFIX" $NUM_COURSES_ARG
 
 print_info "Cleaning up..."
 rm -f "$MOODLE_ROOT/populate_courses.php"
